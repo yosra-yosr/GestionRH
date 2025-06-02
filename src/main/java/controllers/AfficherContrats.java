@@ -1,3 +1,4 @@
+
 package controllers;
 import java.sql.*;
 import entities.Contrat;
@@ -18,10 +19,15 @@ import javafx.scene.chart.NumberAxis;
 import javafx.fxml.FXML;
 import java.sql.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import services.ContratSearchService;
+import javafx.scene.input.KeyEvent;
 
 public class AfficherContrats {
 
+    private final ContratSearchService searchService = new ContratSearchService();
     private final ContratService contratService = new ContratService();
     private final ObservableList<Contrat> contratList = FXCollections.observableArrayList();
     private Contrat selectedContrat;
@@ -360,6 +366,8 @@ public class AfficherContrats {
         }
     }
 
+
+
     @FXML
     public void handleAddEmployee(ActionEvent actionEvent) {
         ajouterContrat();
@@ -649,4 +657,272 @@ public class AfficherContrats {
         updateDepartmentChart();
         System.out.println("Données des départements chargées pour le graphique");
     }
+
+
+
+@FXML
+public void handleSearch(KeyEvent event) {
+    String searchTerm = search.getText();
+    
+    if (searchTerm == null || searchTerm.trim().isEmpty()) {
+        // Si la recherche est vide, afficher tous les contrats
+        loadContrats();
+        return;
+    }
+    
+    performSearch(searchTerm.trim());
 }
+
+/**
+ * Gestionnaire pour le bouton de recherche (si vous en ajoutez un)
+ */
+@FXML
+public void handleSearchButton(ActionEvent actionEvent) {
+    String searchTerm = search.getText();
+    
+    if (searchTerm == null || searchTerm.trim().isEmpty()) {
+        showAlert("Attention", "Veuillez saisir un terme de recherche.");
+        return;
+    }
+    
+    performSearch(searchTerm.trim());
+}
+
+/**
+ * Effectue la recherche et met à jour la table
+ */
+private void performSearch(String searchTerm) {
+    try {
+        System.out.println("Recherche pour: " + searchTerm);
+        
+        // Effacer la liste actuelle
+        contratList.clear();
+        
+        // Effectuer la recherche globale
+        List<Contrat> searchResults = searchService.searchGlobal(searchTerm);
+        
+        // Ajouter les résultats à la liste observable
+        contratList.addAll(searchResults);
+        
+        // Mettre à jour la table
+        if (tablec != null) {
+            tablec.setItems(contratList);
+            tablec.refresh();
+        }
+        
+        // Afficher le nombre de résultats
+        System.out.println("Nombre de résultats trouvés: " + searchResults.size());
+        
+        // Optionnel: afficher un message si aucun résultat
+        if (searchResults.isEmpty()) {
+            showAlert("Information", "Aucun contrat trouvé pour: " + searchTerm);
+        }
+        
+    } catch (Exception e) {
+        System.out.println("Erreur lors de la recherche: " + e.getMessage());
+        e.printStackTrace();
+        showAlert("Erreur", "Erreur lors de la recherche: " + e.getMessage());
+    }
+}
+
+/**
+ * Recherche avancée par critères spécifiques
+ */
+@FXML
+public void handleAdvancedSearch(ActionEvent actionEvent) {
+    try {
+        // Récupérer les valeurs des champs de recherche
+        String nameSearch = name != null ? name.getText() : null;
+        String roleSearch = role != null ? role.getText() : null;
+        String cinSearch = cin != null ? cin.getText() : null;
+        String matriculeSearch = matricule != null ? matricule.getText() : null;
+        String emailSearch = email != null ? email.getText() : null;
+        String phoneSearch = phone != null ? phone.getText() : null;
+        
+        // Vérifier qu'au moins un critère est rempli
+        if (isAllEmpty(nameSearch, roleSearch, cinSearch, matriculeSearch, emailSearch, phoneSearch)) {
+            showAlert("Attention", "Veuillez remplir au moins un critère de recherche.");
+            return;
+        }
+        
+        // Effectuer la recherche avancée
+        List<Contrat> searchResults = searchService.searchAdvanced(
+            nameSearch, roleSearch, cinSearch, matriculeSearch, emailSearch, phoneSearch
+        );
+        
+        // Mettre à jour la table
+        contratList.clear();
+        contratList.addAll(searchResults);
+        
+        if (tablec != null) {
+            tablec.setItems(contratList);
+            tablec.refresh();
+        }
+        
+        System.out.println("Recherche avancée - Nombre de résultats: " + searchResults.size());
+        
+        if (searchResults.isEmpty()) {
+            showAlert("Information", "Aucun contrat trouvé avec les critères spécifiés.");
+        }
+        
+    } catch (Exception e) {
+        System.out.println("Erreur lors de la recherche avancée: " + e.getMessage());
+        e.printStackTrace();
+        showAlert("Erreur", "Erreur lors de la recherche avancée: " + e.getMessage());
+    }
+}
+
+/**
+ * Recherche par nom uniquement
+ */
+@FXML
+public void searchByName(ActionEvent actionEvent) {
+    String nameToSearch = name != null ? name.getText() : "";
+    if (nameToSearch.trim().isEmpty()) {
+        showAlert("Attention", "Veuillez saisir un nom à rechercher.");
+        return;
+    }
+    
+    List<Contrat> results = searchService.searchByName(nameToSearch);
+    updateTableWithResults(results, "nom: " + nameToSearch);
+}
+
+/**
+ * Recherche par rôle uniquement
+ */
+@FXML 
+public void searchByRole(ActionEvent actionEvent) {
+    String roleToSearch = role != null ? role.getText() : "";
+    if (roleToSearch.trim().isEmpty()) {
+        showAlert("Attention", "Veuillez saisir un rôle à rechercher.");
+        return;
+    }
+    
+    List<Contrat> results = searchService.searchByRole(roleToSearch);
+    updateTableWithResults(results, "rôle: " + roleToSearch);
+}
+
+/**
+ * Recherche par CIN uniquement
+ */
+@FXML
+public void searchByCin(ActionEvent actionEvent) {
+    String cinToSearch = cin != null ? cin.getText() : "";
+    if (cinToSearch.trim().isEmpty()) {
+        showAlert("Attention", "Veuillez saisir un CIN à rechercher.");
+        return;
+    }
+    
+    List<Contrat> results = searchService.searchByCin(cinToSearch);
+    updateTableWithResults(results, "CIN: " + cinToSearch);
+}
+
+/**
+ * Recherche par matricule uniquement
+ */
+@FXML
+public void searchByMatricule(ActionEvent actionEvent) {
+    String matriculeToSearch = matricule != null ? matricule.getText() : "";
+    if (matriculeToSearch.trim().isEmpty()) {
+        showAlert("Attention", "Veuillez saisir un matricule à rechercher.");
+        return;
+    }
+    
+    List<Contrat> results = searchService.searchByMatricule(matriculeToSearch);
+    updateTableWithResults(results, "matricule: " + matriculeToSearch);
+}
+
+/**
+ * Afficher tous les contrats actifs
+ */
+@FXML
+public void showActiveContracts(ActionEvent actionEvent) {
+    List<Contrat> results = searchService.searchActiveContracts();
+    updateTableWithResults(results, "contrats actifs");
+}
+
+/**
+ * Afficher tous les contrats expirés
+ */
+@FXML
+public void showExpiredContracts(ActionEvent actionEvent) {
+    List<Contrat> results = searchService.searchExpiredContracts();
+    updateTableWithResults(results, "contrats expirés");
+}
+
+/**
+ * Réinitialiser la recherche et afficher tous les contrats
+ */
+@FXML
+public void resetSearch(ActionEvent actionEvent) {
+    // Vider le champ de recherche
+    if (search != null) {
+        search.clear();
+    }
+    
+    // Recharger tous les contrats
+    loadContrats();
+    
+    showAlert("Information", "Recherche réinitialisée. Tous les contrats sont affichés.");
+}
+
+/**
+ * Méthode utilitaire pour mettre à jour la table avec les résultats
+ */
+private void updateTableWithResults(List<Contrat> results, String searchType) {
+    try {
+        contratList.clear();
+        contratList.addAll(results);
+        
+        if (tablec != null) {
+            tablec.setItems(contratList);
+            tablec.refresh();
+        }
+        
+        System.out.println("Recherche par " + searchType + " - Résultats: " + results.size());
+        
+        if (results.isEmpty()) {
+            showAlert("Information", "Aucun contrat trouvé pour " + searchType + ".");
+        }
+        
+    } catch (Exception e) {
+        System.out.println("Erreur lors de la mise à jour des résultats: " + e.getMessage());
+        e.printStackTrace();
+        showAlert("Erreur", "Erreur lors de l'affichage des résultats: " + e.getMessage());
+    }
+}
+
+/**
+ * Vérifie si tous les paramètres sont vides
+ */
+private boolean isAllEmpty(String... values) {
+    for (String value : values) {
+        if (value != null && !value.trim().isEmpty()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Obtenir le nombre de résultats pour le terme de recherche actuel
+ */
+public int getCurrentSearchResultCount() {
+    String searchTerm = search != null ? search.getText() : "";
+    if (searchTerm.trim().isEmpty()) {
+        return contratList.size();
+    }
+    return searchService.countSearchResults(searchTerm);
+}
+
+@FXML
+private void clearSearch(ActionEvent event) {
+    // Add your search clearing logic here
+    // For example:
+    // searchField.clear(); // if you have a search TextField
+    // Or refresh your table/list view
+}
+
+
+}
+
