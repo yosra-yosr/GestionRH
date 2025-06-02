@@ -1,0 +1,148 @@
+.top_form{
+    -fx-background-color: #fff;
+    -fx-border-color: #000;
+    -fx-border-width: .4px .4px .2px .4px;
+}
+
+.semi-top-form{
+    -fx-background-color: #efefef;
+    -fx-border-color: #000;
+    -fx-border-width: .2px .4px .8px .4px;
+}
+
+.nav-form{
+    -fx-background-color: linear-gradient(to bottom right, #272b3f, #256b47);
+}
+
+.nav-btn{
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-font-family: "Arial";
+    -fx-font-fill: #fff;
+    -fx-alignment: CENTER-LEFT;
+}
+
+.shadow{
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 6,0,0,0);
+}
+
+.white-bg{
+    -fx-background-color: #fff;
+    -fx-background-radius: 8px;
+}
+
+.table-view{
+    -fx-background-color: transparent;
+}
+
+.table-view .table-column{
+    -fx-alignment: CENTER;
+}
+
+.table-view .column-header-background{
+    -fx-background-radius: 8px 8px 0px 0px;
+    -fx-background-color: black;
+}
+.table-view .column-header .filter{
+    -fx-background-color: transparent;
+    -fx-size: 40px;
+}
+
+.table-view .column-header .label{
+    -fx-text-fill: #217554;
+}
+
+.text-field{
+    -fx-background-color: linear-gradient(to bottom , #efefef, #eee);
+    -fx-border-color: linear-gradient(to bottom right, #272b3f, #256b51);
+    -fx-border-width: 1px;
+    -fx-font-family: "tahoma";
+    -fx-border-radius: 4px;
+}
+
+.text-field:focused{
+    -fx-border-width: 1.8px;
+    -fx-background-color: #fff;
+}
+
+.search{
+    -fx-background-color: transparent;
+    -fx-border-color: linear-gradient(to bottom right, #272b3f, #256b51);
+    -fx-border-size: 13px;
+    -fx-font-family: "Arial";
+    -fx-border-radius: 5px;
+    -fx-border-width: 1px;
+    -fx-padding: 0px 0px 0px 28px;
+}
+
+.search:focused{
+    -fx-border-width: 2px;
+}
+
+.add-btn{
+    -fx-background-color: #304575;
+    -fx-font-size: 14px;
+    -fx-font-family: "Arial";
+    -fx-border-radius: 8px;
+    -fx-text-fill: #fff;
+    -fx-cursor: hand;
+}
+
+.add-btn:hover{
+    -fx-background-color: #3357a4;
+}
+
+.delete-btn{
+    -fx-background-color: #86253f;
+    -fx-font-size: 14px;
+    -fx-font-family: "Arial";
+    -fx-border-radius: 8px;
+    -fx-text-fill: #fff;
+    -fx-cursor: hand;
+}
+
+.delete-btn:hover{
+    -fx-background-color: #ae1d46;
+}
+
+.update-btn{
+    -fx-background-color: #2c786c;
+    -fx-font-size: 14px;
+    -fx-font-family: "Arial";
+    -fx-border-radius: 8px;
+    -fx-text-fill: #fff;
+    -fx-cursor: hand;
+}
+
+.update-btn:hover{
+    -fx-background-color: #4c9173;
+}
+
+.card{
+    -fx-background-color: linear-gradient(to bottom right, #272b3f, #256b51);
+}
+
+.drop-list{
+    -fx-background-color: linear-gradient(to bottom, #efefef, #eee);
+    -fx-border-color: linear-gradient(to bottom right, #272b3f, #256b51);
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-text-fill: #333;
+    -fx-padding: 2px;
+    -fx-cursor: hand;
+}
+
+.drop-list:hover{
+    -fx-background-color: linear-gradient(to bottom, #e0e0e0, #ddd);
+    -fx-border-width: 1.2px;
+}
+
+.drop-list:pressed{
+    -fx-background-color: linear-gradient(to bottom, #d0d0d0, #ccc);
+}
+
+.drop-list .arrow{
+    -fx-background-color: #256b51;
+}
+
+
