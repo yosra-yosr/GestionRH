@@ -467,6 +467,52 @@
     -fx-padding: 12px;
 }
 
+/* Ajoutez ces styles à votre fichier Departement.css */
 
+/* Style pour les boutons d'export */
+.export-btn {
+    -fx-background-color: #17a2b8;
+    -fx-background-radius: 5px;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 2, 0, 0, 1);
+}
+
+.export-btn:hover {
+    -fx-background-color: #138496;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.export-btn:pressed {
+    -fx-background-color: #0f6674;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+/* Style alternatif pour un bouton d'export plus distinctif */
+.export-btn-primary {
+    -fx-background-color: linear-gradient(to bottom, #28a745, #20c997);
+    -fx-background-radius: 6px;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 3, 0, 0, 2);
+}
+
+.export-btn-primary:hover {
+    -fx-background-color: linear-gradient(to bottom, #218838, #1e7e34);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.export-btn-primary:pressed {
+    -fx-background-color: linear-gradient(to bottom, #1e7e34, #155724);
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
 
 

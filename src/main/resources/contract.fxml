@@ -223,32 +223,39 @@
                                           
                                           <!-- Boutons d'action -->
                                           <Button layoutX="20.0" layoutY="165.0" mnemonicParsing="false" onAction="#handleAddEmployee" prefWidth="80.0" styleClass="add-btn" stylesheets="@Departement.css" text="Add" />
-                                          <Button layoutX="115.0" layoutY="165.0" mnemonicParsing="false" onAction="#handleUpdateEmployee" prefWidth="80.0" styleClass="update-btn" stylesheets="@Departement.css" text="Update" />
-                                          <Button layoutX="210.0" layoutY="165.0" mnemonicParsing="false" onAction="#handleDeleteEmployee" prefWidth="80.0" styleClass="delete-btn" stylesheets="@Departement.css" text="Delete" />
-                                          <Button layoutX="305.0" layoutY="165.0" mnemonicParsing="false" onAction="#resetSearch" prefWidth="80.0" styleClass="reset-btn" stylesheets="@Departement.css" text="Reset" />
+<Button layoutX="115.0" layoutY="165.0" mnemonicParsing="false" onAction="#handleUpdateEmployee" prefWidth="80.0" styleClass="update-btn" stylesheets="@Departement.css" text="Update" />
+<Button layoutX="210.0" layoutY="165.0" mnemonicParsing="false" onAction="#handleDeleteEmployee" prefWidth="80.0" styleClass="delete-btn" stylesheets="@Departement.css" text="Delete" />
+<Button layoutX="305.0" layoutY="165.0" mnemonicParsing="false" onAction="#resetSearch" prefWidth="80.0" styleClass="reset-btn" stylesheets="@Departement.css" text="Reset" />
+
+<!-- NOUVEAUX BOUTONS D'EXPORT -->
+<Button layoutX="400.0" layoutY="165.0" mnemonicParsing="false" onAction="#handleExportContracts" prefWidth="90.0" styleClass="export-btn" stylesheets="@Departement.css" text="Export CSV" />
                                        </children>
                                     </AnchorPane>
                                     
                                     <!-- Section de recherche -->
                                     <AnchorPane layoutX="20.0" layoutY="270.0" prefHeight="60.0" prefWidth="640.0" styleClass="search-container" stylesheets="@Departement.css">
-                                       <children>
-                                          <Label layoutX="10.0" layoutY="15.0" text="Search et Filter" textFill="#166934">
-                                             <font>
-                                                <Font name="Arial Bold" size="16.0" />
-                                             </font>
-                                          </Label>
-                                          
-                                          <TextField fx:id="search" layoutX="400.0" layoutY="35.0" prefHeight="25.0" prefWidth="180.0" 
-                                                   promptText="Search contracts..." styleClass="search" stylesheets="@Departement.css" 
-                                                   onKeyReleased="#handleSearch" />
-                                          
-                                          <Button layoutX="590.0" layoutY="35.0" text="Search" onAction="#handleSearchButton" 
-                                                  styleClass="search-btn" stylesheets="@Departement.css" />
-                                          
-                                          <Button layoutX="20.0" layoutY="35.0" text="Advanced Search" onAction="#handleAdvancedSearch" 
-                                                  styleClass="search-btn" stylesheets="@Departement.css" />
-                                       </children>
-                                    </AnchorPane>
+   <children>
+      <Label layoutX="10.0" layoutY="15.0" text="Search et Filter" textFill="#166934">
+         <font>
+            <Font name="Arial Bold" size="16.0" />
+         </font>
+      </Label>
+      
+      <TextField fx:id="search" layoutX="350.0" layoutY="35.0" prefHeight="25.0" prefWidth="150.0" 
+               promptText="Search contracts..." styleClass="search" stylesheets="@Departement.css" 
+               onKeyReleased="#handleSearch" />
+      
+      <Button layoutX="510.0" layoutY="35.0" text="Search" onAction="#handleSearchButton" 
+              styleClass="search-btn" stylesheets="@Departement.css" />
+      
+      <Button layoutX="20.0" layoutY="35.0" text="Advanced Search" onAction="#handleAdvancedSearch" 
+              styleClass="search-btn" stylesheets="@Departement.css" />
+              
+      <!-- NOUVEAU BOUTON D'EXPORT COMPLET -->
+      <Button layoutX="570.0" layoutY="35.0" text="Export All" onAction="#handleExportAll" 
+              styleClass="export-btn" stylesheets="@Departement.css" />
+   </children>
+</AnchorPane>
                                     
                                     <!-- Tableau des contrats -->
                                     <TableView fx:id="tablec" layoutX="20.0" layoutY="350.0" onMouseClicked="#handleEmployeeTableClick" 
@@ -310,9 +317,11 @@
                                     <TextField fx:id="nombre" layoutX="510.0" layoutY="105.0" prefHeight="25.0" prefWidth="140.0" styleClass="text-field" stylesheets="@Departement.css" />
                                     
                                     <Button fx:id="department_add_btn" layoutX="100.0" layoutY="150.0" mnemonicParsing="false" onAction="#handleAddDepartment" prefHeight="30.0" prefWidth="80.0" styleClass="add-btn" stylesheets="@Departement.css" text="Add" />
-                                    <Button fx:id="department_add_btn1" layoutX="200.0" layoutY="150.0" mnemonicParsing="false" onAction="#handleUpdateDepartment" prefHeight="30.0" prefWidth="80.0" styleClass="update-btn" stylesheets="@Departement.css" text="Update" />
-                                    <Button fx:id="department_delete_btn" layoutX="300.0" layoutY="150.0" mnemonicParsing="false" onAction="#handleDeleteDepartment" prefHeight="30.0" prefWidth="80.0" styleClass="delete-btn" stylesheets="@Departement.css" text="Delete" />
-                                    
+<Button fx:id="department_add_btn1" layoutX="200.0" layoutY="150.0" mnemonicParsing="false" onAction="#handleUpdateDepartment" prefHeight="30.0" prefWidth="80.0" styleClass="update-btn" stylesheets="@Departement.css" text="Update" />
+<Button fx:id="department_delete_btn" layoutX="300.0" layoutY="150.0" mnemonicParsing="false" onAction="#handleDeleteDepartment" prefHeight="30.0" prefWidth="80.0" styleClass="delete-btn" stylesheets="@Departement.css" text="Delete" />
+
+<!-- NOUVEAU BOUTON D'EXPORT DÉPARTEMENTS -->
+<Button layoutX="400.0" layoutY="150.0" mnemonicParsing="false" onAction="#handleExportDepartments" prefHeight="30.0" prefWidth="90.0" styleClass="export-btn" stylesheets="@Departement.css" text="Export CSV" />
                                     <LineChart fx:id="departmentChart" layoutX="40.0" layoutY="200.0" prefHeight="280.0" prefWidth="600.0" title="Sum Salaries by Department" titleSide="BOTTOM">
                                        <xAxis>
                                           <CategoryAxis side="BOTTOM" />

@@ -25,6 +25,14 @@ import java.util.Map;
 import services.ContratSearchService;
 import javafx.scene.input.KeyEvent;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import java.io.File;
+
 public class AfficherContrats {
 
     private final ContratSearchService searchService = new ContratSearchService();
@@ -923,6 +931,282 @@ private void clearSearch(ActionEvent event) {
     // Or refresh your table/list view
 }
 
+
+
+@FXML
+public void handleExportContracts(ActionEvent actionEvent) {
+    try {
+        // Créer un FileChooser pour sélectionner l'emplacement de sauvegarde
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Exporter les contrats");
+        fileChooser.setInitialFileName("contrats_export_" + getCurrentTimestamp() + ".csv");
+        
+        // Définir les extensions de fichier
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv");
+        fileChooser.getExtensionFilters().add(extFilter);
+        
+        // Obtenir la fenêtre parente
+        Stage stage = (Stage) tablec.getScene().getWindow();
+        
+        // Afficher le dialogue de sauvegarde
+        File file = fileChooser.showSaveDialog(stage);
+        
+        if (file != null) {
+            exportContractsToCSV(file);
+            showAlert("Succès", "Les contrats ont été exportés avec succès vers: " + file.getAbsolutePath());
+        }
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+        showAlert("Erreur", "Erreur lors de l'export: " + e.getMessage());
+    }
+}
+
+/**
+ * Gestionnaire pour le bouton d'export - Export des départements
+ */
+@FXML
+public void handleExportDepartments(ActionEvent actionEvent) {
+    try {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Exporter les départements");
+        fileChooser.setInitialFileName("departements_export_" + getCurrentTimestamp() + ".csv");
+        
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv");
+        fileChooser.getExtensionFilters().add(extFilter);
+        
+        Stage stage = (Stage) tablec.getScene().getWindow();
+        File file = fileChooser.showSaveDialog(stage);
+        
+        if (file != null) {
+            exportDepartmentsToCSV(file);
+            showAlert("Succès", "Les départements ont été exportés avec succès vers: " + file.getAbsolutePath());
+        }
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+        showAlert("Erreur", "Erreur lors de l'export: " + e.getMessage());
+    }
+}
+
+/**
+ * Export complet - Contrats et départements dans un seul fichier
+ */
+@FXML
+public void handleExportAll(ActionEvent actionEvent) {
+    try {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Exporter toutes les données");
+        fileChooser.setInitialFileName("export_complet_" + getCurrentTimestamp() + ".csv");
+        
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv");
+        fileChooser.getExtensionFilters().add(extFilter);
+        
+        Stage stage = (Stage) tablec.getScene().getWindow();
+        File file = fileChooser.showSaveDialog(stage);
+        
+        if (file != null) {
+            exportAllDataToCSV(file);
+            showAlert("Succès", "Toutes les données ont été exportées avec succès vers: " + file.getAbsolutePath());
+        }
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+        showAlert("Erreur", "Erreur lors de l'export: " + e.getMessage());
+    }
+}
+
+/**
+ * Exporte les contrats vers un fichier CSV
+ */
+private void exportContractsToCSV(File file) throws IOException {
+    try (FileWriter writer = new FileWriter(file)) {
+        // Écrire l'en-tête
+        writer.append("Matricule,Nom,CIN,Email,Téléphone,Rôle,Date de début,Date de fin\n");
+        
+        // Écrire les données des contrats
+        for (Contrat contrat : contratList) {
+            writer.append(escapeCsvValue(contrat.getMatricule()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getName()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getCin()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getEmail()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getPhone()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getRole()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getDateDebut()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getDateFin()))
+                  .append("\n");
+        }
+        
+        System.out.println("Export des contrats terminé: " + contratList.size() + " enregistrements");
+    }
+}
+
+/**
+ * Exporte les départements vers un fichier CSV
+ */
+private void exportDepartmentsToCSV(File file) throws IOException {
+    try (FileWriter writer = new FileWriter(file)) {
+        // Écrire l'en-tête
+        writer.append("Nom du département,Rôle département,Somme des salaires,Nombre de salaires\n");
+        
+        // Récupérer les données des départements depuis la base de données
+        Map<String, DepartmentData> departmentData = getDepartmentDataWithDetails();
+        
+        // Écrire les données des départements
+        for (Map.Entry<String, DepartmentData> entry : departmentData.entrySet()) {
+            DepartmentData data = entry.getValue();
+            writer.append(escapeCsvValue(entry.getKey()))
+                  .append(",")
+                  .append(escapeCsvValue(data.getRoleDepartment()))
+                  .append(",")
+                  .append(String.valueOf(data.getSumSalaries()))
+                  .append(",")
+                  .append(String.valueOf(data.getNbrSalary()))
+                  .append("\n");
+        }
+        
+        System.out.println("Export des départements terminé: " + departmentData.size() + " enregistrements");
+    }
+}
+
+/**
+ * Exporte toutes les données (contrats + départements) vers un fichier CSV
+ */
+private void exportAllDataToCSV(File file) throws IOException {
+    try (FileWriter writer = new FileWriter(file)) {
+        // Section Contrats
+        writer.append("=== CONTRATS ===\n");
+        writer.append("Matricule,Nom,CIN,Email,Téléphone,Rôle,Date de début,Date de fin\n");
+        
+        for (Contrat contrat : contratList) {
+            writer.append(escapeCsvValue(contrat.getMatricule()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getName()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getCin()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getEmail()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getPhone()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getRole()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getDateDebut()))
+                  .append(",")
+                  .append(escapeCsvValue(contrat.getDateFin()))
+                  .append("\n");
+        }
+        
+        // Séparateur
+        writer.append("\n\n");
+        
+        // Section Départements
+        writer.append("=== DÉPARTEMENTS ===\n");
+        writer.append("Nom du département,Rôle département,Somme des salaires,Nombre de salaires\n");
+        
+        Map<String, DepartmentData> departmentData = getDepartmentDataWithDetails();
+        for (Map.Entry<String, DepartmentData> entry : departmentData.entrySet()) {
+            DepartmentData data = entry.getValue();
+            writer.append(escapeCsvValue(entry.getKey()))
+                  .append(",")
+                  .append(escapeCsvValue(data.getRoleDepartment()))
+                  .append(",")
+                  .append(String.valueOf(data.getSumSalaries()))
+                  .append(",")
+                  .append(String.valueOf(data.getNbrSalary()))
+                  .append("\n");
+        }
+        
+        // Section Statistiques
+        writer.append("\n\n");
+        writer.append("=== STATISTIQUES ===\n");
+        writer.append("Type,Valeur\n");
+        writer.append("Total Contrats,").append(String.valueOf(getTotalContracts())).append("\n");
+        writer.append("Total Départements,").append(String.valueOf(getTotalDepartments())).append("\n");
+        writer.append("Date d'export,").append(getCurrentTimestamp()).append("\n");
+        
+        System.out.println("Export complet terminé");
+    }
+}
+
+/**
+ * Récupère les données détaillées des départements
+ */
+private Map<String, DepartmentData> getDepartmentDataWithDetails() {
+    Map<String, DepartmentData> data = new HashMap<>();
+    String sql = "SELECT department_name, role_department, sum_salaries, nbr_salary FROM departments ORDER BY department_name";
+
+    try (Connection conn = getConnection();
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
+
+        while (rs.next()) {
+            String deptName = rs.getString("department_name");
+            String roleDept = rs.getString("role_department");
+            double sumSalaries = rs.getDouble("sum_salaries");
+            int nbrSalary = rs.getInt("nbr_salary");
+            
+            data.put(deptName, new DepartmentData(roleDept, sumSalaries, nbrSalary));
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+        System.out.println("Erreur lors de la récupération des données détaillées des départements: " + e.getMessage());
+    }
+
+    return data;
+}
+
+/**
+ * Échappe les valeurs pour le format CSV (gère les virgules et guillemets)
+ */
+private String escapeCsvValue(String value) {
+    if (value == null) {
+        return "";
+    }
+    
+    // Si la valeur contient des virgules, des guillemets ou des sauts de ligne, l'entourer de guillemets
+    if (value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")) {
+        // Doubler les guillemets existants
+        value = value.replace("\"", "\"\"");
+        // Entourer de guillemets
+        value = "\"" + value + "\"";
+    }
+    
+    return value;
+}
+
+/**
+ * Génère un timestamp pour nommer les fichiers d'export
+ */
+private String getCurrentTimestamp() {
+    LocalDateTime now = LocalDateTime.now();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+    return now.format(formatter);
+}
+
+private static class DepartmentData {
+    private String roleDepartment;
+    private double sumSalaries;
+    private int nbrSalary;
+    
+    public DepartmentData(String roleDepartment, double sumSalaries, int nbrSalary) {
+        this.roleDepartment = roleDepartment;
+        this.sumSalaries = sumSalaries;
+        this.nbrSalary = nbrSalary;
+    }
+    
+    public String getRoleDepartment() { return roleDepartment; }
+    public double getSumSalaries() { return sumSalaries; }
+    public int getNbrSalary() { return nbrSalary; }
+}
 
 }
 
