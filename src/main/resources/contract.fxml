@@ -74,7 +74,7 @@
                <center>
                   <AnchorPane prefHeight="540.0" prefWidth="700.0" BorderPane.alignment="CENTER">
                      <children>
-                        <!-- HOME PANE -->
+                        <!-- HOME PANE - MODIFIÉ AVEC TABLE STATIQUE -->
                         <AnchorPane fx:id="homePane" prefHeight="540.0" prefWidth="700.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
                               <AnchorPane layoutX="10.0" layoutY="10.0" prefHeight="520.0" prefWidth="680.0" stylesheets="@Departement.css">
@@ -122,14 +122,20 @@
                                                 </Label>
                                              </children>
                                           </AnchorPane>
-                                          <LineChart layoutX="40.0" layoutY="160.0" prefHeight="240.0" prefWidth="560.0">
-                                             <xAxis>
-                                                <CategoryAxis side="BOTTOM" />
-                                             </xAxis>
-                                             <yAxis>
-                                                <NumberAxis side="LEFT" />
-                                             </yAxis>
-                                          </LineChart>
+                                          
+                                          <!-- TABLE STATIQUE REMPLAÇANT LE GRAPHIQUE -->
+                                          <Label layoutX="40.0" layoutY="150.0" text="Department Salary Thresholds" textFill="#2c7347">
+                                             <font>
+                                                <Font name="Arial Bold" size="18.0" />
+                                             </font>
+                                          </Label>
+                                          
+                                          <TableView fx:id="departmentThresholdTable" layoutX="40.0" layoutY="180.0" prefHeight="220.0" prefWidth="560.0" stylesheets="@Departement.css">
+                                             <columns>
+                                                <TableColumn fx:id="departmentNameColumn" prefWidth="280.0" text="Department Name" />
+                                                <TableColumn fx:id="salaryThresholdColumn" prefWidth="280.0" text="Salary Threshold (TND)" />
+                                             </columns>
+                                          </TableView>
                                        </children>
                                     </AnchorPane>
                                  </children>

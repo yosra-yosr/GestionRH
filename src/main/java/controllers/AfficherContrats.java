@@ -33,6 +33,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+
 public class AfficherContrats {
 
     private final ContratSearchService searchService = new ContratSearchService();
@@ -111,6 +117,9 @@ public class AfficherContrats {
         // Charger les données du graphique au démarrage
         loadExistingDepartments();
 
+     // Initialiser la table des seuils de départements
+        initializeDepartmentThresholdTable();
+        
         // NOUVEAU : Charger les statistiques au démarrage
         updateHomeStatistics();
 
@@ -1207,6 +1216,74 @@ private static class DepartmentData {
     public double getSumSalaries() { return sumSalaries; }
     public int getNbrSalary() { return nbrSalary; }
 }
+
+
+
+
+
+
+//Classe pour représenter les données du département
+public static class DepartmentThreshold {
+ private String departmentName;
+ private String salaryThreshold;
+ 
+ public DepartmentThreshold(String departmentName, String salaryThreshold) {
+     this.departmentName = departmentName;
+     this.salaryThreshold = salaryThreshold;
+ }
+ 
+ // Getters et Setters
+ public String getDepartmentName() {
+     return departmentName;
+ }
+ 
+ public void setDepartmentName(String departmentName) {
+     this.departmentName = departmentName;
+ }
+ 
+ public String getSalaryThreshold() {
+     return salaryThreshold;
+ }
+ 
+ public void setSalaryThreshold(String salaryThreshold) {
+     this.salaryThreshold = salaryThreshold;
+ }
+}
+
+//Dans votre classe AfficherContrats, ajoutez ces variables FXML
+@FXML
+private TableView<DepartmentThreshold> departmentThresholdTable;
+
+@FXML
+private TableColumn<DepartmentThreshold, String> departmentNameColumn;
+
+@FXML
+private TableColumn<DepartmentThreshold, String> salaryThresholdColumn;
+
+//Méthode pour initialiser la table statique (à appeler dans initialize())
+private void initializeDepartmentThresholdTable() {
+ // Configuration des colonnes
+ departmentNameColumn.setCellValueFactory(new PropertyValueFactory<>("departmentName"));
+ salaryThresholdColumn.setCellValueFactory(new PropertyValueFactory<>("salaryThreshold"));
+ 
+ // Création des données statiques
+ ObservableList<DepartmentThreshold> departmentData = FXCollections.observableArrayList(
+     new DepartmentThreshold("Ventes", "3,500 TND"),
+     new DepartmentThreshold("Finance", "4,200 TND"),
+     new DepartmentThreshold("RH", "3,800 TND"),
+     new DepartmentThreshold("Production", "3,200 TND"),
+     new DepartmentThreshold("IT", "4,800 TND"),
+     new DepartmentThreshold("Marketing", "3,600 TND")
+ );
+ 
+ // Ajout des données à la table
+ departmentThresholdTable.setItems(departmentData);
+ 
+ // Style optionnel pour la table
+ departmentThresholdTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+}
+
+
 
 }
 
