@@ -9,6 +9,8 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import services.ContratService;
 
@@ -38,7 +40,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-
 public class AfficherContrats {
 
     private final ContratSearchService searchService = new ContratSearchService();
@@ -79,6 +80,9 @@ public class AfficherContrats {
     @FXML private Label departmentCountLabel;
 
     @FXML
+    private ImageView avatarImage;
+    
+    @FXML
     public void initialize() {
         System.out.println("Initialisation du controller...");
 
@@ -111,6 +115,9 @@ public class AfficherContrats {
         // Initialiser l'interface (afficher Contract par défaut)
         initializeInterface();
 
+        Image image = new Image("https://www.shareicon.net/data/512x512/2016/07/26/802001_man_512x512.png");
+        avatarImage.setImage(image);
+        
         // Charger les contrats
         loadContrats();
 
