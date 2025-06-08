@@ -2,6 +2,7 @@
 package controllers;
 import java.sql.*;
 import entities.Contrat;
+import entities.Department;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -74,14 +75,16 @@ public class AfficherContrats {
     @FXML private TableColumn<Contrat, String> name1;
     @FXML private TableColumn<Contrat, String> datef1;
     @FXML private LineChart<String, Number> departmentChart;
-
+    @FXML private Button syncChartBtn;
+    
     // NOUVEAU : Labels pour les statistiques de la page d'accueil
     @FXML private Label contractCountLabel;
     @FXML private Label departmentCountLabel;
 
     @FXML
     private ImageView avatarImage;
-    
+    private ObservableList<Department> departmentList;
+    private ObservableList<DepartmentThreshold> departmentThresholdList;
     @FXML
     public void initialize() {
         System.out.println("Initialisation du controller...");
@@ -121,6 +124,8 @@ public class AfficherContrats {
         // Charger les contrats
         loadContrats();
 
+        initializeChart();
+        
         // Charger les données du graphique au démarrage
         loadExistingDepartments();
 
@@ -145,7 +150,138 @@ public class AfficherContrats {
         }
     }
 
-    /**
+    private void initializeChart() {
+        if (departmentChart != null) {
+            departmentChart.setTitle("Comparaison Salaires par Département");
+            departmentChart.setAnimated(true);
+            departmentChart.setCreateSymbols(true);
+            departmentChart.setLegendVisible(true);
+            
+            // Synchroniser le graphique avec les données actuelles
+            updateChart();
+        }
+    }
+
+    private void updateChart() {
+        if (departmentChart == null) return;
+        
+        // Vider le graphique existant
+        departmentChart.getData().clear();
+        
+        // Créer les séries de données
+        XYChart.Series<String, Number> salariesSeries = new XYChart.Series<>();
+        salariesSeries.setName("Somme des Salaires (Base de données)");
+        
+        XYChart.Series<String, Number> thresholdSeries = new XYChart.Series<>();
+        thresholdSeries.setName("Seuils Salariaux (HomePane)");
+        
+        // Ajouter les données réelles des départements de la base de données
+        if (departmentList != null) {
+            for (Department dept : departmentList) {
+                String deptName = dept.getDepartmentName();
+                double sumSalaries = dept.getSumSalaries();
+                salariesSeries.getData().add(new XYChart.Data<>(deptName, sumSalaries));
+            }
+        }
+        
+        // Ajouter les seuils salariaux de la table du HomePane
+        if (departmentThresholdList != null) {
+            for (DepartmentThreshold threshold : departmentThresholdList) {
+                String deptName = threshold.getDepartmentName();
+                double thresholdValue = threshold.getThresholdValue();
+                thresholdSeries.getData().add(new XYChart.Data<>(deptName, thresholdValue));
+            }
+        }
+        
+        // Ajouter les séries au graphique
+        departmentChart.getData().addAll(salariesSeries, thresholdSeries);
+        
+        // Appliquer les styles
+        applyChartStyles();
+    }
+
+    private void applyChartStyles() {
+        if (departmentChart.getData().size() >= 2) {
+            // Style pour la première série (Somme des Salaires - Base de données) - Bleu
+            departmentChart.getData().get(0).getNode().setStyle("-fx-stroke: #6366f1; -fx-stroke-width: 3px;");
+            
+            // Style pour la deuxième série (Seuils HomePane) - Vert
+            departmentChart.getData().get(1).getNode().setStyle("-fx-stroke: #10b981; -fx-stroke-width: 3px;");
+            
+            // Ajouter des styles aux points de données
+            for (XYChart.Data<String, Number> data : departmentChart.getData().get(0).getData()) {
+                if (data.getNode() != null) {
+                    data.getNode().setStyle("-fx-background-color: #6366f1; -fx-background-radius: 5px;");
+                }
+            }
+            
+            for (XYChart.Data<String, Number> data : departmentChart.getData().get(1).getData()) {
+                if (data.getNode() != null) {
+                    data.getNode().setStyle("-fx-background-color: #10b981; -fx-background-radius: 5px;");
+                }
+            }
+        }
+    }
+    @FXML
+    private void handleSyncChart(ActionEvent event) {
+        try {
+            // Recharger les données depuis la base
+            loadDepartmentData();
+            
+            // Réinitialiser les données des seuils si nécessaire
+            initializeDepartmentThresholdTable();
+            
+            // Mettre à jour le graphique avec les deux sources de données
+            updateChart();
+            
+            // Afficher une confirmation
+            showInfo("Synchronisation", "Le graphique a été synchronisé avec succès!\n" +
+                    "- Données salaires: Base de données\n" +
+                    "- Seuils salariaux: Table HomePane");
+            
+        } catch (Exception e) {
+            showAlert("Erreur de synchronisation", "Impossible de synchroniser le graphique: " + e.getMessage());
+        }
+    }
+    
+
+    private void showInfo(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+	private void loadDepartmentData() {
+        departmentList = FXCollections.observableArrayList();
+        
+        String query = "SELECT * FROM departments ORDER BY department_name";
+        
+        try (Connection conn=getConnection();
+        		PreparedStatement pstmt = conn.prepareStatement(query);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            while (rs.next()) {
+                Department dept = new Department(
+                    rs.getString("id"),
+                    rs.getString("department_name"),
+                    rs.getString("role_department"),
+                    rs.getDouble("sum_salaries"),
+                    rs.getInt("nbr_salary")
+                );
+                departmentList.add(dept);
+            }
+            
+            // Mettre à jour la table (cette méthode est maintenant pour les départements réels)
+            // La table departmentThresholdTable est gérée séparément avec des données statiques
+            
+        } catch (SQLException e) {
+            showAlert("Erreur de chargement", "Impossible de charger les données des départements: " + e.getMessage());
+        }
+    }
+
+	/**
      * NOUVEAU : Calcule le nombre total de contrats depuis la base de données
      */
     private int getTotalContracts() {
@@ -1230,31 +1366,39 @@ private static class DepartmentData {
 
 
 //Classe pour représenter les données du département
-public static class DepartmentThreshold {
- private String departmentName;
- private String salaryThreshold;
- 
- public DepartmentThreshold(String departmentName, String salaryThreshold) {
-     this.departmentName = departmentName;
-     this.salaryThreshold = salaryThreshold;
- }
- 
- // Getters et Setters
- public String getDepartmentName() {
-     return departmentName;
- }
- 
- public void setDepartmentName(String departmentName) {
-     this.departmentName = departmentName;
- }
- 
- public String getSalaryThreshold() {
-     return salaryThreshold;
- }
- 
- public void setSalaryThreshold(String salaryThreshold) {
-     this.salaryThreshold = salaryThreshold;
- }
+public class DepartmentThreshold {
+    private String departmentName;
+    private String salaryThreshold;
+    private double thresholdValue; // Valeur numérique pour le graphique
+    
+    public DepartmentThreshold(String departmentName, String salaryThreshold) {
+        this.departmentName = departmentName;
+        this.salaryThreshold = salaryThreshold;
+        // Extraire la valeur numérique de la chaîne (ex: "3,500 TND" -> 3500.0)
+        this.thresholdValue = parseThresholdValue(salaryThreshold);
+    }
+    
+    private double parseThresholdValue(String thresholdStr) {
+        try {
+            // Supprimer "TND" et les espaces, remplacer les virgules par des points
+            String numericStr = thresholdStr.replace("TND", "").replace(",", "").trim();
+            return Double.parseDouble(numericStr);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+    
+    // Getters
+    public String getDepartmentName() { return departmentName; }
+    public String getSalaryThreshold() { return salaryThreshold; }
+    public double getThresholdValue() { return thresholdValue; }
+    
+    // Setters
+    public void setDepartmentName(String departmentName) { this.departmentName = departmentName; }
+    public void setSalaryThreshold(String salaryThreshold) { 
+        this.salaryThreshold = salaryThreshold;
+        this.thresholdValue = parseThresholdValue(salaryThreshold);
+    }
 }
 
 //Dans votre classe AfficherContrats, ajoutez ces variables FXML

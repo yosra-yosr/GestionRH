@@ -65,15 +65,6 @@
                               <!-- Spacer -->
                               <AnchorPane HBox.hgrow="ALWAYS" />
                               
-                              <!-- Search bar in header -->
-                              <!-- <HBox alignment="CENTER" spacing="10.0" styleClass="header-search-container">
-                                 <children>
-                                    <TextField fx:id="globalSearch" promptText="Recherche globale..." 
-                                              styleClass="header-search" prefWidth="250.0" />
-                                    <Button text="🔍" styleClass="search-icon-btn" />
-                                 </children>
-                              </HBox> -->
-                              
                               <!-- User menu placeholder -->
                               <HBox alignment="CENTER" spacing="15.0">
                                  <children>
@@ -264,7 +255,16 @@
                                     <!-- En-tête de page -->
                                     <HBox alignment="CENTER_LEFT" spacing="15.0">
                                        <children>
-                                          <Label text="Gestion des Contrats" styleClass="page-title" />
+                                          <Label text="Gestion des Contrats" styleClass="page-title" >
+                                          <font>
+                                                <Font name="System Bold" size="32.0" />
+                                             </font>
+                                          </Label>
+                                           <Label text="Informations du Contrat" styleClass="form-section-title" >
+                                          <font>
+                                                <Font size="16.0" />
+                                             </font>
+                                          </Label>
                                           <HBox alignment="CENTER_LEFT" spacing="10.0" HBox.hgrow="ALWAYS">
                                              <children>
                                                 <AnchorPane HBox.hgrow="ALWAYS" />
@@ -278,7 +278,7 @@
                                     <!-- Formulaire modernisé -->
                                     <VBox styleClass="modern-form-container" spacing="20.0">
                                        <children>
-                                          <Label text="Informations du Contrat" styleClass="form-section-title" />
+                                         
                                           
                                           <!-- Première ligne -->
                                           <HBox spacing="20.0">
@@ -398,7 +398,7 @@
                            </children>
                         </AnchorPane>
 
-                        <!-- DEPARTMENTS PANE MODERNISÉ -->
+                        <!-- DEPARTMENTS PANE MODERNISÉ AVEC DOUBLE COURBE -->
                         <AnchorPane fx:id="departmentsPane" prefHeight="640.0" prefWidth="940.0" 
                                    styleClass="content-pane" visible="false">
                            <children>
@@ -410,7 +410,16 @@
                                     <!-- En-tête -->
                                     <HBox alignment="CENTER_LEFT" spacing="15.0">
                                        <children>
-                                          <Label text="Gestion des Départements" styleClass="page-title" />
+                                          <Label text="Gestion des Départements" styleClass="page-title" >
+                                          <font>
+                                                <Font name="System Bold" size="32.0" />
+                                             </font>
+                                          </Label>
+                                          <Label text="Informations du Département" styleClass="form-section-title" >
+                                          <font>
+                                                <Font size="16.0" />
+                                             </font>
+                                          </Label>
                                           <AnchorPane HBox.hgrow="ALWAYS" />
                                           <Button onAction="#handleExportDepartments" styleClass="modern-export-btn" 
                                                  text="📤 Exporter CSV" />
@@ -420,7 +429,7 @@
                                     <!-- Formulaire modernisé -->
                                     <VBox styleClass="modern-form-container" spacing="20.0">
                                        <children>
-                                          <Label text="Informations du Département" styleClass="form-section-title" />
+                                          
                                           
                                           <HBox spacing="20.0">
                                              <children>
@@ -464,22 +473,49 @@
                                                        styleClass="modern-secondary-btn" text="✏️ Modifier" />
                                                 <Button fx:id="department_delete_btn" onAction="#handleDeleteDepartment" 
                                                        styleClass="modern-danger-btn" text="🗑️ Supprimer" />
+                                                <AnchorPane HBox.hgrow="ALWAYS" />
+                                                <!-- Nouveau bouton pour synchroniser les données -->
+                                                <Button fx:id="syncChartBtn" onAction="#handleSyncChart" 
+                                                       styleClass="modern-accent-btn" text="🔄 Synchroniser Graphique" />
                                              </children>
                                           </HBox>
                                        </children>
                                     </VBox>
                                     
-                                    <!-- Graphique modernisé -->
+                                    <!-- Graphique modernisé avec double courbe -->
                                     <VBox styleClass="modern-chart-container" spacing="15.0">
                                        <children>
-                                          <Label text="Somme des Salaires par Département" styleClass="chart-title" />
+                                          <HBox alignment="CENTER_LEFT" spacing="20.0">
+                                             <children>
+                                                <Label text="Comparaison Salaires par Département" styleClass="chart-title" />
+                                                <AnchorPane HBox.hgrow="ALWAYS" />
+                                                <!-- Légende des courbes -->
+                                                <HBox spacing="20.0" alignment="CENTER">
+                                                   <children>
+                                                      <HBox spacing="8.0" alignment="CENTER">
+                                                         <children>
+                                                            <Circle fill="#6366f1" radius="6.0" />
+                                                            <Label text="Somme des Salaires" styleClass="legend-label" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox spacing="8.0" alignment="CENTER">
+                                                         <children>
+                                                            <Circle fill="#10b981" radius="6.0" />
+                                                            <Label text="Seuils Salariaux" styleClass="legend-label" />
+                                                         </children>
+                                                      </HBox>
+                                                   </children>
+                                                </HBox>
+                                             </children>
+                                          </HBox>
+                                          
                                           <LineChart fx:id="departmentChart" styleClass="modern-chart" 
-                                                    prefHeight="250.0" animated="true">
+                                                    prefHeight="300.0" animated="true" createSymbols="true">
                                              <xAxis>
-                                                <CategoryAxis side="BOTTOM" />
+                                                <CategoryAxis side="BOTTOM" label="Départements" />
                                              </xAxis>
                                              <yAxis>
-                                                <NumberAxis side="LEFT" />
+                                                <NumberAxis side="LEFT" label="Montant (TND)" />
                                              </yAxis>
                                           </LineChart>
                                        </children>
