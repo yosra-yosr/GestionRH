@@ -41,6 +41,10 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+
+import javafx.concurrent.Task;
+
+
 public class AfficherContrats {
 
     private final ContratSearchService searchService = new ContratSearchService();
@@ -234,10 +238,22 @@ public class AfficherContrats {
             // Mettre à jour le graphique avec les deux sources de données
             updateChart();
             
-            // Afficher une confirmation
-            showInfo("Synchronisation", "Le graphique a été synchronisé avec succès!\n" +
-                    "- Données salaires: Base de données\n" +
-                    "- Seuils salariaux: Table HomePane");
+            long departmentsExceedingThreshold = departmentList.stream()
+                    .mapToDouble(Department::getSumSalaries)
+                    .filter(salary -> salary > 3000)
+                    .count();
+                
+                // Afficher une confirmation avec information sur les seuils
+                String message = "Le graphique a été synchronisé avec succès!\n" +
+                        "- Données salaires: Base de données\n" +
+                        "- Seuils salariaux: Table HomePane";
+                
+                if (departmentsExceedingThreshold > 0) {
+                    message += "\n\n⚠️ " + departmentsExceedingThreshold + " département(s) dépassent le seuil de 3000€\n" +
+                              "Des emails d'alerte ont été envoyés automatiquement.";
+                }
+                
+                showInfo("Synchronisation", message);
             
         } catch (Exception e) {
             showAlert("Erreur de synchronisation", "Impossible de synchroniser le graphique: " + e.getMessage());
@@ -271,6 +287,9 @@ public class AfficherContrats {
                     rs.getInt("nbr_salary")
                 );
                 departmentList.add(dept);
+                if (dept.getSumSalaries() > 3000) {
+                    sendThresholdExceededEmail(dept);
+                }
             }
             
             // Mettre à jour la table (cette méthode est maintenant pour les départements réels)
@@ -280,6 +299,114 @@ public class AfficherContrats {
             showAlert("Erreur de chargement", "Impossible de charger les données des départements: " + e.getMessage());
         }
     }
+
+	private void sendThresholdExceededEmail(Department department) {
+	    // Configuration email - À adapter selon vos paramètres
+	    String senderEmail = "Mail Mte3k"; // Remplacez par votre email
+	    String senderPassword = "clè API mte3k"; // Remplacez par votre mot de passe d'application
+	    String recipientEmail = "yosryosra35@gmail.com";
+	    String subject = "Urgent";
+	    String body = String.format(
+	        "Vous avez dépassé le seuil des salaires du département\n\n" +
+	        "Détails du département :\n" +
+	        "- Nom: %s\n" +
+	        "- Rôle: %s\n" +
+	        "- Somme des salaires: %.2f €\n" +
+	        "- Nombre d'employés: %d\n" +
+	        "- Seuil limite: 3000 €\n\n" +
+	        "Veuillez prendre les mesures nécessaires.\n\n" +
+	        "Message automatique généré le %s",
+	        department.getDepartmentName(),
+	        department.getRoleDepartment(),
+	        department.getSumSalaries(),
+	        department.getNbrSalary(),
+	        java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
+	    );
+	    
+	    // Créer une tâche en arrière-plan pour l'envoi d'email
+	    Task<Void> emailTask = new Task<Void>() {
+	        @Override
+	        protected Void call() throws Exception {
+	            try {
+	                EmailService emailService = new EmailService(senderEmail, senderPassword);
+	                emailService.sendEmail(recipientEmail, subject, body);
+	                
+	                // Log de succès
+	                System.out.println("Email de seuil dépassé envoyé pour le département: " + department.getDepartmentName());
+	                
+	            } catch (Exception e) {
+	                // Log d'erreur
+	                System.err.println("Erreur lors de l'envoi de l'email automatique: " + e.getMessage());
+	                throw new Exception("Erreur d'envoi email: " + e.getMessage());
+	            }
+	            return null;
+	        }
+	        
+	        @Override
+	        protected void succeeded() {
+	            // Optionnel: Afficher une notification discrète
+	            javafx.application.Platform.runLater(() -> {
+	                // Vous pouvez ajouter une notification subtile ici si souhaité
+	                System.out.println("Notification email envoyée avec succès pour " + department.getDepartmentName());
+	            });
+	        }
+	        
+	        @Override
+	        protected void failed() {
+	            javafx.application.Platform.runLater(() -> {
+	                // Log d'erreur sans interrompre l'utilisateur
+	                System.err.println("Échec de l'envoi de notification email: " + getException().getMessage());
+	            });
+	        }
+	    };
+	    
+	    // Lancer la tâche en arrière-plan
+	    Thread emailThread = new Thread(emailTask);
+	    emailThread.setDaemon(true); // Thread daemon pour ne pas bloquer la fermeture de l'application
+	    emailThread.start();
+	}
+
+	/**
+	 * Version alternative avec notification visuelle optionnelle
+	 */
+	private void sendThresholdExceededEmailWithNotification(Department department) {
+	    String senderEmail = "votre.email@gmail.com"; // À configurer
+	    String senderPassword = "votre_mot_de_passe_application"; // À configurer
+	    String recipientEmail = "yosryosra35@gmail.com";
+	    String subject = "Urgent";
+	    String body = "Vous avez dépassé le seuil des salaires du département";
+	    
+	    Task<Void> emailTask = new Task<Void>() {
+	        @Override
+	        protected Void call() throws Exception {
+	            EmailService emailService = new EmailService(senderEmail, senderPassword);
+	            emailService.sendEmail(recipientEmail, subject, body);
+	            return null;
+	        }
+	        
+	        @Override
+	        protected void succeeded() {
+	            javafx.application.Platform.runLater(() -> {
+	                // Notification discrète (optionnelle)
+	                showInfo("Notification envoyée", 
+	                    "Email d'alerte envoyé pour le département: " + department.getDepartmentName() + 
+	                    "\nSomme des salaires: " + department.getSumSalaries() + " €");
+	            });
+	        }
+	        
+	        @Override
+	        protected void failed() {
+	            javafx.application.Platform.runLater(() -> {
+	                showAlert("Erreur notification", 
+	                    "Impossible d'envoyer l'email d'alerte: " + getException().getMessage());
+	            });
+	        }
+	    };
+	    
+	    Thread emailThread = new Thread(emailTask);
+	    emailThread.setDaemon(true);
+	    emailThread.start();
+	}
 
 	/**
      * NOUVEAU : Calcule le nombre total de contrats depuis la base de données
