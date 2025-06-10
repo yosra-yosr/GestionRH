@@ -24,6 +24,7 @@ import java.sql.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import services.ContratSearchService;
 import javafx.scene.input.KeyEvent;
@@ -238,22 +239,26 @@ public class AfficherContrats {
             // Mettre à jour le graphique avec les deux sources de données
             updateChart();
             
-            long departmentsExceedingThreshold = departmentList.stream()
-                    .mapToDouble(Department::getSumSalaries)
-                    .filter(salary -> salary > 3000)
-                    .count();
-                
-                // Afficher une confirmation avec information sur les seuils
-                String message = "Le graphique a été synchronisé avec succès!\n" +
-                        "- Données salaires: Base de données\n" +
-                        "- Seuils salariaux: Table HomePane";
-                
-                if (departmentsExceedingThreshold > 0) {
-                    message += "\n\n⚠️ " + departmentsExceedingThreshold + " département(s) dépassent le seuil de 3000€\n" +
-                              "Des emails d'alerte ont été envoyés automatiquement.";
+            // Compter les départements dépassant leur seuil spécifique
+            long departmentsExceedingThreshold = countDepartmentsExceedingThreshold();
+            List<String> exceedingDepartments = getDepartmentsExceedingThreshold();
+            
+            // Afficher une confirmation avec information sur les seuils
+            String message = "Le graphique a été synchronisé avec succès!\n" +
+                    "- Données salaires: Base de données\n" +
+                    "- Seuils salariaux: Seuils spécifiques par département";
+            
+            if (departmentsExceedingThreshold > 0) {
+                message += "\n\n⚠️ " + departmentsExceedingThreshold + " département(s) dépassent leur seuil:\n";
+                for (String deptInfo : exceedingDepartments) {
+                    message += "  • " + deptInfo + "\n";
                 }
-                
-                showInfo("Synchronisation", message);
+                message += "Des emails d'alerte ont été envoyés automatiquement.";
+            } else {
+                message += "\n\n✅ Tous les départements respectent leurs seuils salariaux.";
+            }
+            
+            showInfo("Synchronisation", message);
             
         } catch (Exception e) {
             showAlert("Erreur de synchronisation", "Impossible de synchroniser le graphique: " + e.getMessage());
@@ -261,7 +266,56 @@ public class AfficherContrats {
     }
     
 
-    private void showInfo(String title, String message) {
+    private List<String> getDepartmentsExceedingThreshold() {
+        return departmentList.stream()
+                .filter(dept -> {
+                    double threshold = getDepartmentThreshold(dept.getDepartmentName());
+                    return dept.getSumSalaries() > threshold;
+                })
+                .map(dept -> {
+                    double threshold = getDepartmentThreshold(dept.getDepartmentName());
+                    return String.format("%s (%.2f TND > %.2f TND)", 
+                        dept.getDepartmentName(), 
+                        dept.getSumSalaries(), 
+                        threshold);
+                })
+                .collect(Collectors.toList());
+    }
+
+	private long countDepartmentsExceedingThreshold() {
+    return departmentList.stream()
+            .filter(dept -> {
+                double threshold = getDepartmentThreshold(dept.getDepartmentName());
+                return dept.getSumSalaries() > threshold;
+            })
+            .count();
+}
+
+	private double getDepartmentThreshold(String departmentName) {
+    // Map contenant les seuils pour chaque département
+    Map<String, Double> thresholds = new HashMap<>();
+    thresholds.put("Ventes", 3500.0);
+    thresholds.put("Finance", 4200.0);
+    thresholds.put("RH", 3800.0);
+    thresholds.put("Production", 3200.0);
+    thresholds.put("IT", 4800.0);
+    thresholds.put("Marketing", 3600.0);
+    
+    // Retourne le seuil du département ou une valeur par défaut
+    return thresholds.getOrDefault(departmentName, 3000.0);
+}
+
+
+	private long countDepartmentsExceedingThresholdFromDB() {
+        return departmentList.stream()
+                .filter(dept -> {
+                    double threshold = getDepartmentThresholdFromDB(dept.getDepartmentName());
+                    return dept.getSumSalaries() > threshold;
+                })
+                .count();
+    }
+
+	private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
@@ -287,8 +341,9 @@ public class AfficherContrats {
                     rs.getInt("nbr_salary")
                 );
                 departmentList.add(dept);
-                if (dept.getSumSalaries() > 3000) {
-                    sendThresholdExceededEmail(dept);
+                double departmentThreshold = getDepartmentThresholdFromDB(dept.getDepartmentName());
+                if (dept.getSumSalaries() > departmentThreshold) {
+                    sendThresholdExceededEmail(dept, departmentThreshold);
                 }
             }
             
@@ -300,10 +355,31 @@ public class AfficherContrats {
         }
     }
 
-	private void sendThresholdExceededEmail(Department department) {
+	private double getDepartmentThresholdFromDB(String departmentName) {
+	    String query = "SELECT salary_threshold FROM department_thresholds WHERE department_name = ?";
+	    
+	    try (Connection conn = getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(query)) {
+	        
+	        pstmt.setString(1, departmentName);
+	        ResultSet rs = pstmt.executeQuery();
+	        
+	        if (rs.next()) {
+	            return rs.getDouble("salary_threshold");
+	        }
+	        
+	    } catch (SQLException e) {
+	        System.err.println("Erreur lors de la récupération du seuil: " + e.getMessage());
+	    }
+	    
+	    // Valeur par défaut si le seuil n'est pas trouvé
+	    return 3000.0;
+	}
+
+	private void sendThresholdExceededEmail(Department department, Double d) {
 	    // Configuration email - À adapter selon vos paramètres
-	    String senderEmail = "Mail Mte3k"; // Remplacez par votre email
-	    String senderPassword = "clè API mte3k"; // Remplacez par votre mot de passe d'application
+	    String senderEmail = "mail mte3k"; // Remplacez par votre email
+	    String senderPassword = "API key mte3k"; // Remplacez par votre mot de passe d'application
 	    String recipientEmail = "yosryosra35@gmail.com";
 	    String subject = "Urgent";
 	    String body = String.format(
@@ -313,13 +389,14 @@ public class AfficherContrats {
 	        "- Rôle: %s\n" +
 	        "- Somme des salaires: %.2f €\n" +
 	        "- Nombre d'employés: %d\n" +
-	        "- Seuil limite: 3000 €\n\n" +
+	        "- Seuil limite: %.2f TND\n\n" +
 	        "Veuillez prendre les mesures nécessaires.\n\n" +
 	        "Message automatique généré le %s",
 	        department.getDepartmentName(),
 	        department.getRoleDepartment(),
 	        department.getSumSalaries(),
 	        department.getNbrSalary(),
+	        d,
 	        java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
 	    );
 	    
